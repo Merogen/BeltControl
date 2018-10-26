@@ -1,0 +1,374 @@
+package platform;
+
+
+import jssc.SerialPort;
+import jssc.SerialPortException;
+
+public class Communication {
+	
+	public static boolean CONNECTED=true;
+
+	public SerialPort serialPort;
+	
+	
+	int previous=-1;
+	
+	float[] histogram;
+	
+	int[] hist_previous;
+	
+	int target_previous=-1;
+	int target_current=-1;
+
+	
+	public Communication(){
+		if (CONNECTED){
+			try {
+				serialPort = new SerialPort("/dev/ttyACM0");
+				serialPort.openPort();
+				serialPort.setParams(19200, 8, 1, 0);
+			} catch (SerialPortException e) {e.printStackTrace();}
+		}
+		
+		histogram=new float[60];
+		
+		hist_previous=new int[60];
+	}
+	
+	public void close(){
+		
+		stopAll();
+		
+		if (CONNECTED){
+			try {
+				System.out.println("Port closed: " + serialPort.closePort());
+			} catch (SerialPortException e) {e.printStackTrace();}
+		}
+	}
+	
+	public void sendMsg(float[] distances, float[] target){
+		
+		
+		// target
+		target_current=-1;
+		for (int a2=0;a2<360;a2++){
+			
+			int angle=(a2-100+360)%360;
+			if (target[a2]>0){
+			
+				//System.out.println(angle);
+				if (angle<10 || angle>=347.5) target_current=04;
+				else if (angle>=10 && angle<30) target_current=03;
+				else if (angle>=30 && angle<50) target_current=02;
+				else if (angle>=50 && angle<70) target_current=01;
+				else if (angle>=70 && angle<90) target_current=00;
+				
+				else if (angle>=90 && angle<110) target_current=50;
+				else if (angle>=110 && angle<130) target_current=51;
+				else if (angle>=130 && angle<150) target_current=52;
+				else if (angle>=150 && angle<170) target_current=53;
+				else if (angle>=170 && angle<192.5) target_current=54;
+				
+				else if (angle>=192.5 && angle<218) target_current=55;
+				else if (angle>=218 && angle<243.5) target_current=56;
+				else if (angle>=243.5 && angle<269) target_current=57;
+				
+				else if (angle>=269 && angle<294.5) target_current=07;
+				else if (angle>=294.5 && angle<320) target_current=06;
+				else if (angle>=320 && angle<347.5) target_current=05;
+			}
+		}
+		
+		if (target_current>=0){
+			hist_previous[target_current]=-1;
+		}
+		
+		if (target_current>=0 && target_current!=target_previous){
+			
+			stop(target_previous);
+			
+			String msg="+";
+			if (target_current<10) msg+="0";
+			msg+=target_current+"9490";
+			
+			if (CONNECTED){
+				System.out.println("sent 4 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+			target_previous=target_current;
+		}
+		
+		
+		// obstacles
+		for (int a=0;a<60;a++){
+			histogram[a]=-1;
+		}
+		for (int a2=0;a2<360;a2++){
+			int a=(a2-90+360)%360;
+			if (a<10 || a>=347.5){
+				if (distances[a]>histogram[4]) histogram[4]=distances[a2];
+			}
+			else if (a>=10 && a<30){
+				if (distances[a]>histogram[3]) histogram[3]=distances[a2];
+			}
+			else if (a>=30 && a<50){
+				if (distances[a]>histogram[2]) histogram[2]=distances[a2];
+			}
+			else if (a>=50 && a<70){
+				if (distances[a]>histogram[1]) histogram[1]=distances[a2];
+			}
+			else if (a>=70 && a<90){
+				if (distances[a]>histogram[0]) histogram[0]=distances[a2];
+			}
+			else if (a>=90 && a<110){
+				if (distances[a]>histogram[50]) histogram[50]=distances[a2];
+			}
+			else if (a>=110 && a<130){
+				if (distances[a]>histogram[51]) histogram[51]=distances[a2];
+			}
+			else if (a>=130 && a<150){
+				if (distances[a]>histogram[52]) histogram[53]=distances[a2];
+			}
+			
+			else if (a>=150 && a<170){
+				if (distances[a]>histogram[54]) histogram[54]=distances[a2];
+			}
+			else if (a>=170 && a<192.5){
+				if (distances[a]>histogram[55]) histogram[55]=distances[a2];
+			}
+			
+			else if (a>=192.5 && a<218){
+				if (distances[a]>histogram[56]) histogram[56]=distances[a2];
+			}
+			else if (a>=218 && a<243.5){
+				if (distances[a]>histogram[53]) histogram[53]=distances[a2];
+			}
+			else if (a>=243.5 && a<269){
+				if (distances[a]>histogram[57]) histogram[57]=distances[a2];
+			}
+			else if (a>=269 && a<294.5){
+				if (distances[a]>histogram[7]) histogram[7]=distances[a2];
+			}
+			else if (a>=294.5 && a<320){
+				if (distances[a]>histogram[6]) histogram[6]=distances[a2];
+			}
+			else if (a>=320 && a<347.5){
+				if (distances[a]>histogram[5]) histogram[5]=distances[a2];
+			}
+		}
+		
+		//for (int a=0;a<60;a++){
+		//	if (a!=50) histogram[a]=-1;
+		//}*/
+		
+		for (int v=0;v<60;v++){
+			if (histogram[v]>=0 && v!=target_current){
+
+				int pwm=Math.max(0, Math.min(9, (int)(histogram[v]/2)-2));
+				
+				if (pwm!=hist_previous[v]){
+					//System.out.println(v+" , "+histogram[v]+" ,  "+pwm);
+					String msg="-";
+					if (v<10) msg+="0";
+					
+					msg+=v+""+pwm;
+					
+					if (CONNECTED){
+						System.out.println("sent 1 : "+msg);
+						try {
+							serialPort.writeBytes(msg.getBytes());
+						} catch (SerialPortException e) {e.printStackTrace();}
+					}
+					hist_previous[v]=pwm;
+				}
+			}
+		}
+	}
+	
+	
+	
+	public void sendCapture(){
+		if (CONNECTED){
+		try {
+			
+			/*// 0 5 high line ON
+			serialPort.writeBytes("-009-019-029-039-049-059-069-079".getBytes());
+			serialPort.writeBytes("-509-519-529-539-549-559-569-579".getBytes());
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {e.printStackTrace();}
+			
+			// 1 4 middle line ON
+			serialPort.writeBytes("-109-119-129-139-149-159-169-179".getBytes());
+			serialPort.writeBytes("-409-419-429-439-449-459-469-479".getBytes());
+			
+			// 0 5 high line OFF
+			serialPort.writeBytes("-000-010-020-030-040-050-060-070".getBytes());			
+			serialPort.writeBytes("-500-510-520-530-540-550-560-570".getBytes());
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {e.printStackTrace();}
+			
+			// 2 3 low line ON
+			serialPort.writeBytes("-209-219-229-239-249-259-269-279".getBytes());
+			serialPort.writeBytes("-309-319-329-339-349-359-369-379".getBytes());
+			
+			// 1 4 middle line OFF
+			serialPort.writeBytes("-100-110-120-130-140-150-160-170".getBytes());
+			serialPort.writeBytes("-400-410-420-430-440-450-460-470".getBytes());
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {e.printStackTrace();}
+			
+			// 1 4 middle line ON
+			serialPort.writeBytes("-109-119-129-139-149-159-169-179".getBytes());
+			serialPort.writeBytes("-409-419-429-439-449-459-469-479".getBytes());
+			
+			// 2 3 low line OFF
+			serialPort.writeBytes("-200-210-220-230-240-250-260-270".getBytes());
+			serialPort.writeBytes("-300-310-320-330-340-350-360-370".getBytes());
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {e.printStackTrace();}
+
+			// 0 5 high line ON
+			serialPort.writeBytes("-009-019-029-039-049-059-069-079".getBytes());
+			serialPort.writeBytes("-509-519-529-539-549-559-569-579".getBytes());
+			
+			// 1 4 middle line OFF
+			serialPort.writeBytes("-100-110-120-130-140-150-160-170".getBytes());
+			serialPort.writeBytes("-400-410-420-430-440-450-460-470".getBytes());
+
+			
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {e.printStackTrace();}
+			
+			// 0 5 high line OFF
+			serialPort.writeBytes("-500-510-520-530-540-550-560-570".getBytes());
+			serialPort.writeBytes("-000-010-020-030-040-050-060-070".getBytes());*/
+			
+			
+			for (int i=0;i<=8;i++){
+				String msg="";
+				
+				if (i<8){
+					msg="-0"+i+"9-1"+i+"9-2"+i+"9";
+					serialPort.writeBytes(msg.getBytes());
+					
+					msg="-5"+i+"9-4"+i+"9-3"+i+"9";
+					serialPort.writeBytes(msg.getBytes());
+				}
+				
+				if (i>0){
+					msg="-0"+(i-1)+"0-1"+(i-1)+"0-2"+(i-1)+"0";
+					serialPort.writeBytes(msg.getBytes());
+					
+					msg="-5"+(i-1)+"0-4"+(i-1)+"0-3"+(i-1)+"0";
+					serialPort.writeBytes(msg.getBytes());
+				}
+				
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {e.printStackTrace();}
+			}
+			
+			for (int i=7;i>=-1;i--){
+				String msg="";
+				
+				if (i>=0){
+					msg="-0"+i+"9-1"+i+"9-2"+i+"9";
+					serialPort.writeBytes(msg.getBytes());
+					
+					msg="-5"+i+"9-4"+i+"9-3"+i+"9";
+					serialPort.writeBytes(msg.getBytes());
+				}
+				
+				if (i<7){
+					
+					msg="-0"+(i+1)+"0-1"+(i+1)+"0-2"+(i+1)+"0";
+					serialPort.writeBytes(msg.getBytes());
+					
+					System.out.println("+ "+i+" , "+msg);
+					
+					msg="-5"+(i+1)+"0-4"+(i+1)+"0-3"+(i+1)+"0";
+					serialPort.writeBytes(msg.getBytes());
+					
+					System.out.println("+ "+i+" , "+msg);
+					
+				}
+				
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {e.printStackTrace();}
+			}
+			
+
+		} catch (SerialPortException e) {e.printStackTrace();}
+		}
+	}
+	
+	
+	
+	public void stopAll(){
+		if (CONNECTED){
+			for (int i=0;i<6;i++){
+				for (int j=0;j<8;j++){
+					String msg="-"+i+j+"0";
+					try {
+						serialPort.writeBytes(msg.getBytes());
+					} catch (SerialPortException e) {e.printStackTrace();}
+				}
+			}
+			
+			for (int i=0;i<6;i++){
+				for (int j=0;j<8;j++){
+					String msg="-"+i+j+"0";
+					try {
+						serialPort.writeBytes(msg.getBytes());
+					} catch (SerialPortException e) {e.printStackTrace();}
+				}
+			}
+		}
+		
+		System.out.println("stopped");
+	}
+	
+	public void stop(){
+		if (CONNECTED){
+			if (previous>=0){
+				String msg="-";
+				if (previous<10) msg+="0";
+				msg+=previous+"0";
+				System.out.println("sent 2 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+		}
+	}
+	
+	public void stop(int id){
+		if (CONNECTED){
+			if (previous>=0){
+				String msg="-";
+				if (id<10) msg+="0";
+				msg+=id+"0";
+				System.out.println("sent 3 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+		}
+	}
+	
+    
+}

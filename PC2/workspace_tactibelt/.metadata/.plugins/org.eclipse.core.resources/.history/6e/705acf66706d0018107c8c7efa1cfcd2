@@ -1,0 +1,113 @@
+import jssc.SerialPort;
+import jssc.SerialPortException;
+
+public class Main {
+
+	SerialPort serialPort;
+	
+	ControlFrame controlFrame;
+	
+	int previous=-1;
+	
+	public Main(){
+		try {
+			serialPort = new SerialPort("/dev/ttyACM0");
+			serialPort.openPort();
+			serialPort.setParams(9600, 8, 1, 0);
+		} catch (SerialPortException e) {e.printStackTrace();}
+		
+		controlFrame=new ControlFrame(this);
+	}
+	
+	public void close(){
+		try {
+			System.out.println("Port closed: " + serialPort.closePort());
+		} catch (SerialPortException e) {e.printStackTrace();}
+	}
+	
+	public void sendMsg(float angle, int pwm, int pulse){
+		
+
+		
+		int id=-1;
+		
+		if (angle<10 || angle>=347.5) id=40;
+		else if (angle>=10 && angle<30) id=41;
+		else if (angle>=30 && angle<50) id=42;
+		else if (angle>=50 && angle<70) id=43;
+		else if (angle>=70 && angle<90) id=44;
+		else if (angle>=90 && angle<110) id=45;
+		else if (angle>=110 && angle<130) id=46;
+		else if (angle>=130 && angle<150) id=47;
+		
+		else if (angle>=150 && angle<170) id=50;
+		else if (angle>=170 && angle<192.5) id=51;
+		
+		else if (angle>=192.5 && angle<218) id=52;
+		else if (angle>=218 && angle<243.5) id=53;
+		else if (angle>=243.5 && angle<269) id=54;
+		else if (angle>=269 && angle<294.5) id=55;
+		else if (angle>=294.5 && angle<320) id=56;
+		else if (angle>=320 && angle<347.5) id=57;
+		
+		if (id!=-1){
+			
+			// turn off previous motor
+			if (id!=previous) stop();
+			
+			String msg="+";
+			if (id<10) msg+="0";
+			msg+=id+""+pwm+"550";
+			System.out.println("sent : "+msg);
+			try {
+				serialPort.writeBytes(msg.getBytes());
+			} catch (SerialPortException e) {e.printStackTrace();}/**/
+			
+			/*String msg="-";
+			if (id<10) msg+="0";
+			msg+=id+""+pwm;
+			System.out.println("sent : "+msg);
+			try {
+				serialPort.writeBytes(msg.getBytes());
+			} catch (SerialPortException e) {e.printStackTrace();}/**/
+			
+			previous=id;
+		}
+	}
+	
+	public void stop(){
+		if (previous>=0){
+			/*String msg="+";
+			if (previous<10) msg+="0";
+			msg+=previous+"0000";
+			System.out.println("sent : "+msg);
+			try {
+				serialPort.writeBytes(msg.getBytes());
+			} catch (SerialPortException e) {e.printStackTrace();}*/
+			
+			String msg="-";
+			if (previous<10) msg+="0";
+			msg+=previous+"0";
+			System.out.println("sent : "+msg);
+			try {
+				serialPort.writeBytes(msg.getBytes());
+			} catch (SerialPortException e) {e.printStackTrace();}
+		}
+	}
+	
+	
+	public static void main(String[] args) {
+		
+		Main main=new Main();
+		
+		while (true){
+			
+			main.controlFrame.repaint();
+			
+			try {Thread.sleep(10);} 
+			catch (InterruptedException e){e.printStackTrace();}
+			
+		}
+	}
+    
+}

@@ -1,0 +1,38 @@
+
+Script language for TactiBelt.
+
+Command list:
+
+- send message: just write the character chain to send to the TactiBelt. If more than one chain is defined, the system will send a random chain among listed ones.
+Examples: 
+
++508550
+
++438000 +438550
+
+-560
+
+
+- waiting: uses keyword "t" with the number of milliseconds to wait in parameters
+Example:
+
+t 500
+
+
+
+- loop: uses keywords "r" and "loop". The loop starts with "r" and the number of loop in parameters, and ends with "loop". Loops can be nested.
+Example:
+
+r 5
++556640
+t 500
++550000
+t 1000
+loop
+
+
+- comment: uses keyword "#". The comment is displayed on console when running the script.
+Example:
+# this is a comment
+
+

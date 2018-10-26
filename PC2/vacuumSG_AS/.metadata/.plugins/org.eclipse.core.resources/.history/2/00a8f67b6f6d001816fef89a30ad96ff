@@ -1,0 +1,216 @@
+package platform;
+
+
+import jssc.SerialPort;
+import jssc.SerialPortException;
+
+public class Communication {
+	
+	public static boolean CONNECTED=false;
+
+	public SerialPort serialPort;
+	
+	
+	int previous=-1;
+	
+	float[] histogram;
+	
+	int[] hist_previous;
+	
+	int target_previous=-1;
+	int target_current=-1;
+
+	
+	public Communication(){
+		if (CONNECTED){
+			try {
+				serialPort = new SerialPort("/dev/ttyACM0");
+				serialPort.openPort();
+				serialPort.setParams(9600, 8, 1, 0);
+			} catch (SerialPortException e) {e.printStackTrace();}
+		}
+		
+		histogram=new float[60];
+		
+		hist_previous=new int[60];
+	}
+	
+	public void close(){
+		if (CONNECTED){
+			try {
+				System.out.println("Port closed: " + serialPort.closePort());
+			} catch (SerialPortException e) {e.printStackTrace();}
+		}
+	}
+	
+	public void sendMsg(float[] distances, float[] target){
+		
+		
+		// target
+		target_current=-1;
+		for (int a2=0;a2<360;a2++){
+			
+			int angle=(a2-90+360)%360;
+			if (target[a2]>0){
+			
+				if (angle<10 || angle>=347.5) target_current=40;
+				else if (angle>=10 && angle<30) target_current=41;
+				else if (angle>=30 && angle<50) target_current=42;
+				else if (angle>=50 && angle<70) target_current=43;
+				else if (angle>=70 && angle<90) target_current=44;
+				else if (angle>=90 && angle<110) target_current=45;
+				else if (angle>=110 && angle<130) target_current=46;
+				else if (angle>=130 && angle<150) target_current=47;
+				
+				else if (angle>=150 && angle<170) target_current=50;
+				else if (angle>=170 && angle<192.5) target_current=51;
+				
+				else if (angle>=192.5 && angle<218) target_current=52;
+				else if (angle>=218 && angle<243.5) target_current=53;
+				else if (angle>=243.5 && angle<269) target_current=54;
+				else if (angle>=269 && angle<294.5) target_current=55;
+				else if (angle>=294.5 && angle<320) target_current=56;
+				else if (angle>=320 && angle<347.5) target_current=56;
+			}
+		}
+		
+		if (target_current>=0){
+			hist_previous[target_current]=-1;
+		}
+		
+		if (target_current>=0 && target_current!=target_previous){
+			
+			stop(target_previous);
+			
+			String msg="+";
+			if (target_current<10) msg+="0";
+			msg+=target_current+"9490";
+			
+			if (CONNECTED){
+				System.out.println("sent 1 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+			target_previous=target_current;
+		}
+		
+		
+		// obstacles
+		for (int a=0;a<60;a++){
+			histogram[a]=-1;
+		}
+		for (int a2=0;a2<360;a2++){
+			int a=(a2-90+360)%360;
+			if (a<10 || a>=347.5){
+				if (distances[a]>histogram[40]) histogram[40]=distances[a2];
+			}
+			else if (a>=10 && a<30){
+				if (distances[a]>histogram[41]) histogram[41]=distances[a2];
+			}
+			else if (a>=30 && a<50){
+				if (distances[a]>histogram[42]) histogram[42]=distances[a2];
+			}
+			else if (a>=50 && a<70){
+				if (distances[a]>histogram[43]) histogram[43]=distances[a2];
+			}
+			else if (a>=70 && a<90){
+				if (distances[a]>histogram[44]) histogram[44]=distances[a2];
+			}
+			else if (a>=90 && a<110){
+				if (distances[a]>histogram[45]) histogram[45]=distances[a2];
+			}
+			else if (a>=110 && a<130){
+				if (distances[a]>histogram[46]) histogram[46]=distances[a2];
+			}
+			else if (a>=130 && a<150){
+				if (distances[a]>histogram[47]) histogram[47]=distances[a2];
+			}
+			
+			else if (a>=150 && a<170){
+				if (distances[a]>histogram[50]) histogram[50]=distances[a2];
+			}
+			else if (a>=170 && a<192.5){
+				if (distances[a]>histogram[51]) histogram[51]=distances[a2];
+			}
+			
+			else if (a>=192.5 && a<218){
+				if (distances[a]>histogram[52]) histogram[52]=distances[a2];
+			}
+			else if (a>=218 && a<243.5){
+				if (distances[a]>histogram[53]) histogram[53]=distances[a2];
+			}
+			else if (a>=243.5 && a<269){
+				if (distances[a]>histogram[54]) histogram[54]=distances[a2];
+			}
+			else if (a>=269 && a<294.5){
+				if (distances[a]>histogram[55]) histogram[55]=distances[a2];
+			}
+			else if (a>=294.5 && a<320){
+				if (distances[a]>histogram[56]) histogram[56]=distances[a2];
+			}
+			else if (a>=320 && a<347.5){
+				if (distances[a]>histogram[57]) histogram[57]=distances[a2];
+			}
+		}
+		
+		//for (int a=0;a<60;a++){
+		//	if (a!=50) histogram[a]=-1;
+		//}*/
+		
+		for (int v=0;v<60;v++){
+			if (histogram[v]>=0 && v!=target_current){
+
+				int pwm=Math.max(0, Math.min(9, (int)(histogram[v]/4)-3));
+				
+				if (pwm!=hist_previous[v]){
+					System.out.println(v+" , "+histogram[v]+" ,  "+pwm);
+					String msg="-";
+					if (v<10) msg+="0";
+					
+					msg+=v+""+pwm;
+					
+					if (CONNECTED){
+						System.out.println("sent 1 : "+msg);
+						try {
+							serialPort.writeBytes(msg.getBytes());
+						} catch (SerialPortException e) {e.printStackTrace();}
+					}
+					hist_previous[v]=pwm;
+				}
+			}
+		}
+		
+		
+	}
+	
+	public void stop(){
+		if (CONNECTED){
+			if (previous>=0){
+				String msg="-";
+				if (previous<10) msg+="0";
+				msg+=previous+"0";
+				System.out.println("sent 2 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+		}
+	}
+	
+	public void stop(int id){
+		if (CONNECTED){
+			if (previous>=0){
+				String msg="-";
+				if (id<10) msg+="0";
+				msg+=id+"0";
+				System.out.println("sent 3 : "+msg);
+				try {
+					serialPort.writeBytes(msg.getBytes());
+				} catch (SerialPortException e) {e.printStackTrace();}
+			}
+		}
+	}
+	
+    
+}

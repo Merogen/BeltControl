@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 2 elements to &apos;vacuumSG_Hippocampus/src/display&apos;&#x0A;- Original project: &apos;vacuumSG_Hippocampus&apos;&#x0A;- Destination element: &apos;vacuumSG_Hippocampus/src/display&apos;&#x0A;- Original elements:&#x0A;     display.ControlFrame.java&#x0A;     display.ControlPanel.java" description="Copy compilation units" destination="/src&lt;display" element1="/src&lt;display{ControlFrame.java" element2="/src&lt;display{ControlPanel.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1515762462703" units="2" version="1.0"/>
+</session>

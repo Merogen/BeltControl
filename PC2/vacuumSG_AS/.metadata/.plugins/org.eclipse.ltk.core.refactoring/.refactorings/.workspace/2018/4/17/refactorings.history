@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename Java project &apos;Copy of vacuumSG_Tactibelt&apos; to &apos;vacuumSG_Tactibelt&apos;&#x0A;- Original element: &apos;Copy of vacuumSG_Tactibelt&apos;&#x0A;- Renamed element: &apos;Copy of vacuumSG_Tactibelt&apos;&#x0A;- Update references to refactored element" description="Rename Java project &apos;Copy of vacuumSG_Tactibelt&apos;" flags="7" id="org.eclipse.jdt.ui.rename.java.project" input="=Copy of vacuumSG_Tactibelt" name="vacuumSG_Tactibelt" references="true" stamp="1524834160425" version="1.0"/>
+</session>

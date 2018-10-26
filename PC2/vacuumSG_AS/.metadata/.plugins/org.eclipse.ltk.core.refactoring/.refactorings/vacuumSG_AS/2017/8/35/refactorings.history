@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 2 elements to &apos;vacuumSG_AS/src/display&apos;&#x0A;- Original project: &apos;vacuumSG_AS&apos;&#x0A;- Destination element: &apos;vacuumSG_AS/src/display&apos;&#x0A;- Original elements:&#x0A;     display.ProbeFrame.java&#x0A;     display.ProbePanel.java" description="Copy compilation units" destination="/src&lt;display" element1="/src&lt;display{ProbeFrame.java" element2="/src&lt;display{ProbePanel.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1503931470974" units="2" version="1.0"/>
+</session>

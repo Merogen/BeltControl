@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;Board10x10.txt&apos; to &apos;vacuumSG_Tactibelt_manualPoints&apos;&#x0A;- Original project: &apos;vacuumSG_Tactibelt_manualPoints&apos;&#x0A;- Destination element: &apos;vacuumSG_Tactibelt_manualPoints&apos;&#x0A;- Original element: &apos;Board10x10.txt&apos;" description="Copy file" destination="=vacuumSG_Tactibelt_manualPoints" element1="Board10x10.txt" files="1" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1539097074985" units="0" version="1.0"/>
+</session>
